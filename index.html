@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Patrimoine de Nancy</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#26485e">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Public+Sans:wght@400;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -12,12 +16,14 @@
 --p0:#b07d0b;--p1:#5b4b9a;--p2:#1f7a6e;--p3:#c8452c}
 @media (prefers-color-scheme:dark){:root{--bg:#161d21;--card:#1f282d;--tx:#eef1ef;--mu:#9aa8ae;--bd:#33414a;--ac:#8fb8d0;--p0:#d9aa2b;--p1:#a99be8;--p2:#4fc2b0;--p3:#f0836a}}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 'Public Sans',system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0)}
-main{max-width:760px;margin:0 auto;padding:12px 14px}
+main{max-width:760px;margin:0 auto;padding:12px 14px 90px}
+[hidden]{display:none!important}
 h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:6px 0 2px}h1{font-size:25px}h2{font-size:22px}h3{font-size:15px;margin:18px 0 6px}
 .sub,.meta{color:var(--mu);font-size:13px}.meta{margin:3px 0}
 button{font:inherit;font-size:13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:6px 11px;cursor:pointer}
 button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}button:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+details{border-top:1px solid var(--bd);padding:8px 0}summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}summary::-webkit-details-marker{display:none}summary::after{content:'▾';color:var(--mu)}details[open] summary::after{content:'▴'}.cnt{background:var(--ac);color:var(--bg);border-radius:999px;font-size:12px;padding:0 8px;margin-left:8px;font-weight:400}
 #map{height:58vh;min-height:340px;border-radius:12px;border:1px solid var(--bd);z-index:0}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:10px 0}
 .pill{display:inline-block;color:#fff;border-radius:999px;padding:2px 10px;font-size:13px;margin-right:6px}.pill.o{background:none;color:var(--tx);border:1px solid var(--bd)}
@@ -26,6 +32,7 @@ button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}button:foc
 textarea{width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);padding:8px;font:inherit;font-size:14px}
 .ph{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ph img{width:76px;height:76px;object-fit:cover;border-radius:8px;cursor:pointer}
 .st{font-size:22px;border:0;background:none;padding:0 2px;color:var(--mu)}.st.on{color:#e0a800;background:none}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0);z-index:2000}#tabs button{flex:1;border:0;border-radius:0;background:var(--card);padding:13px 6px;font-size:14px}#tabs button.on{background:var(--card);color:var(--ac);font-weight:600;box-shadow:inset 0 3px 0 var(--ac)}.li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--bd);cursor:pointer}
 .pin{width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;box-sizing:border-box}
 .pin.v{opacity:.6}.pin.s{transform:scale(1.3)}.pin b{position:absolute;top:-8px;right:-7px;background:#fff;color:#111;border-radius:50%;font-size:11px;width:15px;height:15px;line-height:15px;text-align:center}
 </style>
@@ -34,13 +41,15 @@ textarea{width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radi
 <main>
 <h1>Patrimoine de Nancy</h1>
 <div class="sub">Prototype. Fiches à relire ; votre carnet reste sur cet appareil.</div>
-<div class="card" id="prog"></div>
-<div class="row" id="fp"></div><div class="row" id="ft"></div><div class="row" id="fs"></div><div class="row" id="fv"></div>
+<div id="v-map"><div class="card" id="prog"></div>
+<div class="card" id="filters"></div>
 <div id="map"></div>
 <div class="row"><button id="loc">📍 Me localiser</button><span class="sub" id="locmsg" style="align-self:center"></span></div>
 <div class="sub" id="leg"></div>
-<div id="detail"></div>
+<div id="detail"></div></div>
+<div id="v-log" hidden></div>
 </main>
+<nav id="tabs"><button data-tab="map" class="on">🗺️ Carte</button><button data-tab="log">✓ Visités <span id="tc"></span></button></nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 /* ===== DONNÉES : une fiche par lieu. Pour ajouter un lieu, copiez un bloc. =====
@@ -65,16 +74,21 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribu
 map.fitBounds(L.latLngBounds(P.map(p=>[p.la,p.lo])),{padding:[40,40]});
 const layer=L.layerGroup().addTo(map);
 const vis=p=>(!F.p.size||F.p.has(p.p))&&(!F.t.size||F.t.has(p.t))&&(!F.s.size||F.s.has(p.s))&&(vf==='all'||(vf==='done')===!!(C[p.id]&&C[p.id].v));
-function chips(el,items,set,fmt){$(el).innerHTML=items.map(k=>`<button data-k="${k}" class="${set.has(k)?'on':''}">${fmt(k)}</button>`).join('');
- $(el).querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=isNaN(b.dataset.k)?b.dataset.k:+b.dataset.k;set.has(k)?set.delete(k):set.add(k);render()})}
+const openG=new Set();
+function filters(){
+ const SET={p:F.p,s:F.s,t:F.t},n=F.p.size+F.s.size+F.t.size;
+ const G=[['p','Époque',()=>[...new Set(P.map(p=>p.p))].sort(),k=>`<span class="dot" style="background:${PER[k][1]}"></span>${PER[k][0]}`],['s','Mouvement',()=>[...new Set(P.map(p=>p.s))].sort(),k=>k],['t','Type',()=>[...new Set(P.map(p=>p.t))],k=>`${TH[k][0]} ${TH[k][1]}`]];
+ $('filters').innerHTML=`<div class="row">${[['all','Tous'],['todo','À visiter'],['done','Visités']].map(([k,v])=>`<button data-v="${k}" class="${vf===k?'on':''}">${v}</button>`).join('')}</div>`
+ +G.map(([g,lab,items,fmt])=>`<details data-g="${g}" ${openG.has(g)?'open':''}><summary><span>${lab}${SET[g].size?`<span class="cnt">${SET[g].size}</span>`:''}</span></summary><div class="row">${items().map(k=>`<button data-g="${g}" data-k="${k}" class="${SET[g].has(k)?'on':''}">${fmt(k)}</button>`).join('')}</div></details>`).join('')
+ +(n?'<div class="row"><button id="clr">Effacer les filtres</button></div>':'');
+ $('filters').querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{vf=b.dataset.v;render()});
+ $('filters').querySelectorAll('details').forEach(d=>d.ontoggle=()=>{d.open?openG.add(d.dataset.g):openG.delete(d.dataset.g)});
+ $('filters').querySelectorAll('button[data-g]').forEach(b=>b.onclick=()=>{const k=isNaN(b.dataset.k)?b.dataset.k:+b.dataset.k,s=SET[b.dataset.g];s.has(k)?s.delete(k):s.add(k);render()});
+ if(n)$('clr').onclick=()=>{F.p.clear();F.s.clear();F.t.clear();render()}}
 function render(){
- const done=P.filter(p=>C[p.id]&&C[p.id].v).length,n=P.length;
+ const done=P.filter(p=>C[p.id]&&C[p.id].v).length,n=P.length;$('tc').textContent=done?'('+done+')':'';
  $('prog').innerHTML=`<strong>${done} lieu${done>1?'x':''} visité${done>1?'s':''} sur ${n}</strong>, ${n-done} restant${n-done>1?'s':''}<div class="bar"><i style="width:${done/n*100}%"></i></div>`;
- chips('fp',[...new Set(P.map(p=>p.p))].sort(),F.p,k=>`<span class="dot" style="background:${PER[k][1]}"></span>${PER[k][0]}`);
- chips('ft',[...new Set(P.map(p=>p.t))],F.t,k=>`${TH[k][0]} ${TH[k][1]}`);
- chips('fs',[...new Set(P.map(p=>p.s))],F.s,k=>k);
- $('fv').innerHTML=[['all','Tous'],['todo','À visiter'],['done','Visités']].map(([k,v])=>`<button data-k="${k}" class="${vf===k?'on':''}">${v}</button>`).join('');
- $('fv').querySelectorAll('button').forEach(b=>b.onclick=()=>{vf=b.dataset.k;render()});
+ filters();
  $('leg').innerHTML=PER.map(p=>`<span class="dot" style="background:${p[1]}"></span>${p[0]}`).join('&nbsp; ');
  layer.clearLayers();
  P.filter(vis).forEach(p=>{const v=C[p.id]&&C[p.id].v;
@@ -93,7 +107,7 @@ function detail(){
  <h3>Mon carnet</h3>
  <button id="vis" class="${r.v?'on':''}">${r.v?'✓ Visité le '+r.d:'Marquer comme visité'}</button>
  <div style="margin:10px 0">${[1,2,3,4,5].map(i=>`<button class="st ${r.r>=i?'on':''}" data-r="${i}" aria-label="${i} étoiles">★</button>`).join('')}</div>
- <textarea id="note" rows="3" placeholder="Mes notes et mon avis">${r.note}</textarea>
+ <textarea id="note" rows="3" placeholder="Mes notes et mon avis">${esc(r.note)}</textarea>
  <div class="row"><input type="file" id="file" accept="image/*" multiple hidden><button id="add">📷 Ajouter des photos</button></div>
  <div class="ph">${r.ph.map((s,i)=>`<img src="${s}" data-i="${i}" alt="Photo ${i+1}">`).join('')}</div>
  <div class="sub" id="warn">${warn||(r.ph.length?'Touchez une photo pour la supprimer.':'')}</div></div>`;
@@ -109,6 +123,26 @@ $('loc').onclick=()=>{$('locmsg').textContent='Recherche de votre position…';m
 map.on('locationfound',e=>{if(me)me.remove();me=L.circleMarker(e.latlng,{radius:8,color:'#fff',weight:3,fillColor:'#2a7de1',fillOpacity:1}).addTo(map);
  const far=e.latlng.distanceTo([48.6925,6.178])>30000;$('locmsg').textContent=far?'Vous êtes loin de Nancy.':'Position trouvée.';if(!far)map.setView(e.latlng,16)});
 map.on('locationerror',()=>{$('locmsg').textContent='Position indisponible : vérifiez l’autorisation de localisation.'});
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let tab='map',grp='p';
+function logView(){
+ const vp=P.filter(p=>C[p.id]&&C[p.id].v),n=P.length;
+ const GR={p:[()=>[...new Set(P.map(x=>x.p))].sort(),k=>PER[k][0],x=>x.p,k=>`<span class="dot" style="background:${PER[k][1]}"></span>`],
+ s:[()=>[...new Set(P.map(x=>x.s))].sort(),k=>k,x=>x.s,k=>''],
+ t:[()=>[...new Set(P.map(x=>x.t))],k=>TH[k][0]+' '+TH[k][1],x=>x.t,k=>'']};
+ const [keys,name,of,mark]=GR[grp];
+ $('v-log').innerHTML=`<div class="card"><strong>${vp.length} lieu${vp.length>1?'x':''} visité${vp.length>1?'s':''} sur ${n}</strong><div class="bar"><i style="width:${vp.length/n*100}%"></i></div>${vp.length?'':'<div class="meta" style="margin-top:8px">Marquez un lieu comme visité depuis sa fiche pour le retrouver ici.</div>'}</div>
+ <div class="row">${[['p','Par époque'],['s','Par mouvement'],['t','Par type']].map(([k,v])=>`<button data-grp="${k}" class="${grp===k?'on':''}">${v}</button>`).join('')}</div>`
+ +keys().map(k=>{const all=P.filter(x=>of(x)===k),v=all.filter(x=>C[x.id]&&C[x.id].v);
+  return `<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>${mark(k)}${name(k)}</strong><span class="meta">${v.length} sur ${all.length}</span></div>`
+  +(v.length?v.map(x=>{const r=C[x.id];return `<div class="li" data-id="${x.id}"><div><strong>${x.n}</strong><div class="meta">${esc(r.d)}${r.r?', '+'★'.repeat(r.r):''}</div>${r.note?`<div class="meta">${esc(r.note.slice(0,90))}${r.note.length>90?'…':''}</div>`:''}</div><span class="meta">›</span></div>`}).join(''):'<div class="meta">Aucun lieu visité pour l’instant.</div>')+'</div>'}).join('');
+ $('v-log').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{grp=b.dataset.grp;logView()});
+ $('v-log').querySelectorAll('.li').forEach(e=>e.onclick=()=>{sel=e.dataset.id;setTab('map');render();$('detail').scrollIntoView()})}
+function setTab(t){tab=t;$('v-map').hidden=t!=='map';$('v-log').hidden=t!=='log';
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+ if(t==='map')setTimeout(()=>map.invalidateSize(),50);else{logView();scrollTo(0,0)}}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 render();
 </script>
 </body>
